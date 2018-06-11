@@ -1,5 +1,6 @@
 parameters:
   imageBuilderImage: null
+  imageBuilderPushArgs: null
   manifest: null
   matrix: {}
 phases:
@@ -13,6 +14,7 @@ phases:
     variables:
       imageBuilder.customArgs: --var VersionFilter=$(buildPath) --var ArchitectureFilter=amd64
       imageBuilder.image: ${{ parameters.imageBuilderImage }}
+      imageBuilder.pushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
     steps:
       - template: docker-cleanup-linux.yml
@@ -23,5 +25,5 @@ phases:
         displayName: Build Images
         inputs:
           filename: docker
-          arguments: run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(Build.SourcesDirectory):/repo -w /repo --name image_builder_$(Build.BuildId) $(imageBuilder.image) build --manifest $(manifest) --path $(buildPath) --push --username $(dockerRegistry.userName) --password $(BotAccount-dotnet-dockerhub-bot-password) $(imageBuilder.customArgs) $(imageBuilder.queueArgs)
+          arguments: run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(Build.SourcesDirectory):/repo -w /repo --name image_builder_$(Build.BuildId) $(imageBuilder.image) build --manifest $(manifest) --path $(buildPath) $(imageBuilder.customArgs) $(imageBuilder.pushArgs) $(imageBuilder.queueArgs)
       - template: docker-cleanup-linux.yml

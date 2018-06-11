@@ -1,8 +1,10 @@
 parameters:
   imageBuilderImage: null
+  isOfficialBuild: false
   manifest: null
 phases:
   - phase: Finalize
+    condition: and(succeeded(), eq(${{ parameters.isOfficialBuild }}, 'true'))
     dependsOn:
       - Linux_amd64
       - Linux_arm32v7

@@ -1,5 +1,6 @@
 parameters:
   imageBuilderImage: null
+  imageBuilderPushArgs: null
   manifest: null
   matrix: {}
 phases:
@@ -20,9 +21,10 @@ phases:
       docker.setupContainerName: setup_$(docker.baseArtifactName)
       imageBuilder.customArgs: --var VersionFilter=$(buildPath) --var ArchitectureFilter=arm
       imageBuilder.image: ${{ parameters.imageBuilderImage }}
+      imageBuilder.pushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
     steps:
-      - template: docker-cleanup-windows.yml
+      - template: ../steps/docker-cleanup-windows.yml
       - script: docker pull $(imageBuilder.image)
         displayName: Pull Image Builder
       - script: docker create $(docker.certVolumeArg) --name $(docker.setupContainerName) $(imageBuilder.image)
@@ -36,10 +38,10 @@ phases:
         displayName: Clone Repo
       - script: docker run $(docker.commonRunArgs) --name checkout_$(docker.baseArtifactName) $(docker.gitEnabledimage) git checkout $(Build.SourceVersion)
         displayName: Checkout Source
-      - script: docker run $(docker.commonRunArgs) --name image_builder_$(docker.baseArtifactName) $(imageBuilder.image) build --manifest $(manifest) --path $(buildPath) --architecture arm --skip-test --push --username $(dockerRegistry.userName) --password $(BotAccount-dotnet-dockerhub-bot-password) $(imageBuilder.customArgs) $(imageBuilder.queueArgs)
+      - script: docker run $(docker.commonRunArgs) --name image_builder_$(docker.baseArtifactName) $(imageBuilder.image) build --manifest $(manifest) --path $(buildPath) --architecture arm --skip-test $(imageBuilder.customArgs) $(imageBuilder.pushArgs) $(imageBuilder.queueArgs)
         displayName: Build Images
       - script: docker run $(docker.commonRunArgs) --name cleanup_$(docker.baseArtifactName) --entrypoint docker $(imageBuilder.image) system prune -a -f
         displayName: Cleanup ARM Docker
         condition: always()
         continueOnError: true
-      - template: docker-cleanup-windows.yml
+      - template: ../steps/docker-cleanup-windows.yml

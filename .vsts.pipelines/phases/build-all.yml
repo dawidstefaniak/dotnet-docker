@@ -1,6 +1,8 @@
 parameters:
   imageBuilderLinuxImage: microsoft/dotnet-buildtools-prereqs:image-builder-debian-20180607190320
   imageBuilderWindowsImage: microsoft/dotnet-buildtools-prereqs:image-builder-nanoserver-20180601092731
+  imageBuilderPushArgs: --push --username $(dockerRegistry.userName) --password $(BotAccount-dotnet-dockerhub-bot-password)
+  isOfficialBuild: true
   manifest: manifest.json
   matrixLinuxAmd64:
     Build_1_*:
@@ -40,17 +42,20 @@ phases:
   - template: build-linux-amd64.yml
     parameters:
       imageBuilderImage: ${{ parameters.imageBuilderLinuxImage }}
+      imageBuilderPushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
       matrix: ${{ parameters.matrixLinuxAmd64 }}
   - template: build-linux-arm32v7.yml
     parameters:
       imageBuilderImage: ${{ parameters.imageBuilderLinuxImage }}
+      imageBuilderPushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
       matrix: ${{ parameters.matrixLinuxArm32v7 }}
   - template: build-windows-amd64.yml
     parameters:
       phase: NanoServerSac2016_amd64
       imageBuilderImage: ${{ parameters.imageBuilderWindowsImage }}
+      imageBuilderPushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
       queue: DotNetCore-Build
       demands:
@@ -60,6 +65,7 @@ phases:
     parameters:
       phase: NanoServer1709_amd64
       imageBuilderImage: ${{ parameters.imageBuilderWindowsImage }}
+      imageBuilderPushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
       queue: DotNetCore-Infra
       demands:
@@ -69,6 +75,7 @@ phases:
     parameters:
       phase: NanoServer1803_amd64
       imageBuilderImage: ${{ parameters.imageBuilderWindowsImage }}
+      imageBuilderPushArgs: ${{ parameters.imageBuilderPushArgs }}
       manifest: ${{ parameters.manifest }}
       queue: DotNetCore-Infra
       demands:
@@ -77,4 +84,5 @@ phases:
   - template: build-finalize.yml
     parameters:
       imageBuilderImage: ${{ parameters.imageBuilderLinuxImage }}
+      isOfficialBuild: ${{ parameters.isOfficialBuild }}
       manifest: ${{ parameters.manifest }}
